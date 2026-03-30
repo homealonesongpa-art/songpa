@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>냉동고 재고 관리</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>재고 관리</title>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -13,9 +13,9 @@
   --fried:#c084fc;--sauce:#fb923c;--drink:#60a5fa;--fridge:#34d399;--counter:#facc15;
   --danger:#f87171;--ok:#4ade80;
 }
-body{background:var(--bg);color:var(--txt);font-family:'Nanum Gothic',sans-serif;min-height:100vh;overflow-x:hidden;}
+body{background:var(--bg);color:var(--txt);font-family:'Nanum Gothic',sans-serif;min-height:100vh;}
 
-/* 잠금 화면 */
+/* 잠금 */
 #lock{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;}
 #lock.hide{display:none;}
 .lk-icon{font-size:40px;margin-bottom:14px;}
@@ -39,63 +39,124 @@ header h1{font-size:18px;font-weight:800;}
 .hdr-r{display:flex;gap:12px;align-items:center;}
 .icon-btn{background:none;border:none;cursor:pointer;font-size:20px;-webkit-tap-highlight-color:transparent;line-height:1;}
 
-/* 검색 및 탭 */
+/* 저장 토스트 */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#333;color:var(--txt);font-size:13px;font-weight:700;padding:10px 20px;border-radius:20px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* 검색 탭 */
 .search-wrap{padding:10px 20px 4px;}
 .search-bar{width:100%;padding:10px 16px;background:var(--sur);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-family:'Nanum Gothic',sans-serif;font-size:14px;outline:none;}
+.search-bar:focus{border-color:#555;}
 .tab-bar{display:flex;gap:6px;padding:10px 20px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--bdr);}
 .tab-bar::-webkit-scrollbar{display:none;}
-.tab{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;background:var(--sur);color:var(--muted);-webkit-tap-highlight-color:transparent;}
+.tab{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid transparent;background:var(--sur);color:var(--muted);-webkit-tap-highlight-color:transparent;}
 .tab.on{color:#0f0f0f;}
-.tab[data-c="전체"].on{background:var(--txt);color:#0f0f0f;}
-.tab[data-c="볶음밥"].on{background:var(--fried);}
-.tab[data-c="소스류"].on{background:var(--sauce);}
-.tab[data-c="음료"].on{background:var(--drink);}
-.tab[data-c="주방 냉동고"].on{background:var(--fridge);}
-.tab[data-c="카운터"].on{background:var(--counter);}
+.tab[data-c="전체"].on{background:var(--txt);border-color:var(--txt);color:#0f0f0f;}
+.tab[data-c="볶음밥"].on{background:var(--fried);border-color:var(--fried);}
+.tab[data-c="소스류"].on{background:var(--sauce);border-color:var(--sauce);}
+.tab[data-c="음료"].on{background:var(--drink);border-color:var(--drink);}
+.tab[data-c="주방 냉동고"].on{background:var(--fridge);border-color:var(--fridge);}
+.tab[data-c="카운터"].on{background:var(--counter);border-color:var(--counter);}
 
 /* 리스트 */
 .content{padding:0 20px 140px;}
 .alert-banner{margin:12px 0 0;padding:12px 14px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:10px;font-size:13px;font-weight:700;color:var(--danger);display:none;}
 .alert-banner.show{display:block;}
-.sec-label{font-size:11px;font-weight:700;color:var(--muted);padding:18px 0 8px;display:flex;align-items:center;justify-content:space-between;}
-.sec-add-btn{font-size:11px;color:var(--muted);background:none;border:1px solid var(--bdr);border-radius:12px;padding:3px 10px;cursor:pointer;}
+.sec-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;padding:18px 0 8px;font-family:'DM Mono',monospace;display:flex;align-items:center;justify-content:space-between;}
+.sec-add-btn{font-size:11px;color:var(--muted);background:none;border:1px solid var(--bdr);border-radius:12px;padding:3px 10px;cursor:pointer;font-family:'Nanum Gothic',sans-serif;-webkit-tap-highlight-color:transparent;}
 .item-list{display:flex;flex-direction:column;gap:2px;}
-.item{display:flex;align-items:center;padding:13px 14px;background:var(--sur);border-radius:8px;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.item.low{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);}
-.item.zero{border-color:rgba(248,113,113,.6);background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.6);}
-.dot-cat{width:7px;height:7px;border-radius:50%;}
+.item{display:flex;align-items:center;padding:13px 14px;background:var(--sur);border-radius:8px;gap:10px;border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.item.low{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.06);}
+.item.zero{border-color:rgba(248,113,113,.6);background:rgba(248,113,113,.14);}
+.dot-cat{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .item-name{flex:1;font-size:14px;font-weight:700;}
-.item-qty{font-family:'DM Mono',monospace;font-size:20px;}
-.badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;}
+.item-r{display:flex;align-items:center;gap:6px;}
+.item-qty{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+.item-qty.low{color:var(--danger);}
+.item-qty.zero{color:var(--danger);font-weight:800;}
+.badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;white-space:nowrap;}
 .badge.low{background:rgba(248,113,113,.2);color:var(--danger);}
 .badge.zero{background:rgba(248,113,113,.35);color:var(--danger);}
+@keyframes fok{from{background:rgba(74,222,128,.25);}to{background:var(--sur);}}
+.item.flash{animation:fok .5s ease-out;}
+.empty{color:var(--muted);font-size:13px;padding:24px 0;text-align:center;}
 
-/* 모달 */
+/* 공통 모달 */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:400;display:none;align-items:flex-end;justify-content:center;}
 .mbg.open{display:flex;}
-.modal{background:#1e1e1e;border-radius:20px 20px 0 0;padding:20px 24px 48px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
+.modal{background:#1e1e1e;border:1px solid var(--bdr);border-radius:20px 20px 0 0;padding:20px 24px 48px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
 .m-handle{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto 18px;}
-.m-name{font-size:17px;font-weight:800;text-align:center;}
-.m-qty{font-family:'DM Mono',monospace;font-size:52px;font-weight:500;text-align:center;margin:10px 0;}
-.m-qty.low, .m-qty.zero{color:var(--danger);}
+
+/* 수량 수정 모달 */
+.m-name{font-size:17px;font-weight:800;text-align:center;margin-bottom:3px;}
+.m-cat-tag{font-size:11px;text-align:center;margin-bottom:3px;}
+.m-min-row{font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px;}
+.m-qty{font-family:'DM Mono',monospace;font-size:52px;font-weight:500;text-align:center;margin:6px 0 18px;letter-spacing:-2px;}
+.m-qty.low{color:var(--danger);}
+.m-qty.zero{color:var(--danger);font-weight:800;}
 .m-stepper{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:16px;}
-.s-btn{width:58px;height:58px;border-radius:50%;background:var(--s2);color:var(--txt);font-size:28px;border:1px solid var(--bdr);cursor:pointer;}
-.m-input{width:100%;height:46px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);text-align:center;margin-bottom:10px;}
-.m-close{width:100%;height:44px;border-radius:10px;background:transparent;border:1px solid var(--bdr);color:var(--muted);margin-top:10px;}
+.s-btn{width:58px;height:58px;border-radius:50%;border:1px solid var(--bdr);background:var(--s2);color:var(--txt);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;user-select:none;}
+.s-btn:active{background:#3a3a3a;}
+.s-lbl{font-size:12px;color:var(--muted);}
+.m-row{display:flex;gap:8px;margin-bottom:10px;}
+.m-input{flex:1;height:46px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);font-family:'DM Mono',monospace;font-size:18px;text-align:center;outline:none;}
+.m-input:focus{border-color:#666;}
+.m-set{height:46px;padding:0 18px;border-radius:10px;border:none;background:#444;color:var(--txt);font-size:14px;font-weight:700;font-family:'Nanum Gothic',sans-serif;cursor:pointer;}
+.m-actions{display:flex;gap:8px;margin-bottom:10px;}
+.m-edit-btn{flex:1;height:44px;border-radius:10px;border:1px solid var(--bdr);background:var(--s2);color:var(--txt);font-size:13px;font-weight:700;font-family:'Nanum Gothic',sans-serif;cursor:pointer;}
+.m-del-btn{flex:1;height:44px;border-radius:10px;border:1px solid rgba(248,113,113,.4);background:rgba(248,113,113,.08);color:var(--danger);font-size:13px;font-weight:700;font-family:'Nanum Gothic',sans-serif;cursor:pointer;}
+.m-close{width:100%;height:44px;border-radius:10px;border:1px solid var(--bdr);background:transparent;color:var(--muted);font-size:14px;font-family:'Nanum Gothic',sans-serif;cursor:pointer;}
+
+/* 폼 모달 */
+.f-title{font-size:17px;font-weight:800;text-align:center;margin-bottom:14px;}
+.f-lbl{font-size:12px;color:var(--muted);margin-bottom:5px;margin-top:14px;display:block;}
+.f-inp{width:100%;height:44px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);font-family:'Nanum Gothic',sans-serif;font-size:15px;padding:0 14px;outline:none;}
+.f-inp:focus{border-color:#666;}
+.f-sel{width:100%;height:44px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);font-family:'Nanum Gothic',sans-serif;font-size:15px;padding:0 14px;outline:none;-webkit-appearance:none;}
+.f-row2{display:flex;gap:8px;}
+.f-row2 .f-inp{flex:1;}
+.f-hint{font-size:11px;color:var(--muted);margin-top:5px;}
+.f-err{font-size:12px;color:var(--danger);text-align:center;min-height:18px;margin-top:8px;}
+.save-btn{width:100%;height:48px;border-radius:12px;border:none;background:var(--txt);color:var(--bg);font-size:15px;font-weight:800;font-family:'Nanum Gothic',sans-serif;cursor:pointer;margin-top:14px;}
+.cancel-btn{width:100%;height:44px;border-radius:12px;border:1px solid var(--bdr);background:transparent;color:var(--muted);font-size:14px;font-family:'Nanum Gothic',sans-serif;cursor:pointer;margin-top:8px;}
 
 /* 하단 바 */
-.bot-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 20px 32px;display:flex;justify-content:space-between;align-items:flex-end;z-index:200;pointer-events:none;}
-.fab{pointer-events:all;width:54px;height:54px;border-radius:50%;background:var(--txt);color:var(--bg);font-size:26px;border:none;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;}
-.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:0.3s;z-index:1000;}
-.toast.show{opacity:1;}
+.bot-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 20px 32px;background:linear-gradient(transparent,var(--bg) 30%);display:flex;justify-content:space-between;align-items:flex-end;z-index:200;pointer-events:none;}
+.hist-btn{pointer-events:all;background:var(--s2);border:1px solid var(--bdr);border-radius:50px;color:var(--txt);padding:10px 16px;font-size:13px;font-weight:700;font-family:'Nanum Gothic',sans-serif;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;}
+.fab{pointer-events:all;width:54px;height:54px;border-radius:50%;background:var(--txt);color:var(--bg);font-size:26px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+
+/* 기록 */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;display:none;}
+.ov.open{display:block;}
+.drawer{position:fixed;bottom:-100%;left:0;right:0;background:#181818;border-top:1px solid var(--bdr);border-radius:16px 16px 0 0;padding:0 20px 40px;z-index:300;transition:bottom .3s cubic-bezier(.32,.72,0,1);max-height:70vh;overflow-y:auto;}
+.drawer.open{bottom:0;}
+.d-handle{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:12px auto 16px;}
+.drawer h2{font-size:15px;font-weight:800;margin-bottom:14px;}
+.log-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:13px;}
+.log-nm{flex:1;font-weight:700;}
+.log-d{font-family:'DM Mono',monospace;font-size:13px;}
+.log-d.pos{color:var(--ok);}
+.log-d.neg{color:var(--danger);}
+.log-d.set{color:#aaa;}
+.log-t{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+
+/* 비번 */
+.pw-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:flex-end;}
+.pw-bg.open{display:flex;}
+.pw-modal{background:#1e1e1e;border:1px solid var(--bdr);border-radius:20px 20px 0 0;padding:20px 24px 48px;width:100%;}
+.pw-modal h3{font-size:16px;font-weight:800;text-align:center;margin-bottom:14px;}
+.pw-hint{font-size:12px;color:var(--muted);text-align:center;margin-bottom:5px;margin-top:12px;}
+.pw-f{width:100%;padding:12px;background:var(--s2);border:1px solid var(--bdr);border-radius:10px;color:var(--txt);font-family:'DM Mono',monospace;font-size:20px;text-align:center;letter-spacing:6px;outline:none;margin-bottom:4px;}
+.pw-f:focus{border-color:#666;}
 </style>
 </head>
 <body>
 
+<!-- 잠금 -->
 <div id="lock">
   <div class="lk-icon">🔒</div>
-  <div class="lk-title">재고 관리 로그인</div>
-  <div class="lk-sub">초기 비밀번호: 1234</div>
+  <div class="lk-title">재고 관리</div>
+  <div class="lk-sub">비밀번호를 입력하세요</div>
   <div class="pin-dots">
     <div class="dot" id="d0"></div><div class="dot" id="d1"></div>
     <div class="dot" id="d2"></div><div class="dot" id="d3"></div>
@@ -117,17 +178,22 @@ header h1{font-size:18px;font-weight:800;}
   <div class="lk-err" id="lk-err"></div>
 </div>
 
+<!-- 토스트 -->
 <div class="toast" id="toast"></div>
 
+<!-- 헤더 -->
 <header>
   <div>
-    <h1>📦 재고 매니저</h1>
-    <div class="hdr-sub" id="last-up">데이터 로딩 중...</div>
+    <h1>📦 재고 관리</h1>
+    <div class="hdr-sub" id="last-up">—</div>
+  </div>
+  <div class="hdr-r">
+    <button class="icon-btn" onclick="openPw()" title="비밀번호 변경">🔑</button>
   </div>
 </header>
 
 <div class="search-wrap">
-  <input class="search-bar" id="search" type="search" placeholder="상품명으로 검색하세요">
+  <input class="search-bar" id="search" type="search" placeholder="상품명 검색...">
 </div>
 <div class="tab-bar" id="tab-bar"></div>
 
@@ -136,155 +202,475 @@ header h1{font-size:18px;font-weight:800;}
   <div id="list-content"></div>
 </div>
 
+<!-- 수량 수정 모달 -->
 <div class="mbg" id="edit-bg">
   <div class="modal">
     <div class="m-handle"></div>
     <div class="m-name" id="m-name"></div>
+    <div class="m-cat-tag" id="m-cat-tag"></div>
+    <div class="m-min-row" id="m-min-row"></div>
     <div class="m-qty" id="m-qty"></div>
     <div class="m-stepper">
       <button class="s-btn" id="s-minus">−</button>
+      <span class="s-lbl">수량 조절</span>
       <button class="s-btn" id="s-plus">＋</button>
     </div>
-    <input class="m-input" id="m-input" type="number" placeholder="숫자 직접 입력">
+    <div class="m-row">
+      <input class="m-input" id="m-input" type="number" inputmode="numeric" placeholder="직접 입력">
+      <button class="m-set" id="m-set">설정</button>
+    </div>
+    <div class="m-actions">
+      <button class="m-edit-btn" id="m-edit-btn">✏️ 정보 수정</button>
+      <button class="m-del-btn" id="m-del-btn">🗑 삭제</button>
+    </div>
     <button class="m-close" id="m-close">닫기</button>
   </div>
 </div>
 
+<!-- 제품 폼 모달 -->
+<div class="mbg" id="form-bg">
+  <div class="modal">
+    <div class="m-handle"></div>
+    <div class="f-title" id="f-title">제품 추가</div>
+    <label class="f-lbl">카테고리</label>
+    <select class="f-sel" id="f-cat"></select>
+    <label class="f-lbl">상품명</label>
+    <input class="f-inp" id="f-name" type="text" placeholder="예: 새우볶음밥">
+    <label class="f-lbl">현재 수량</label>
+    <input class="f-inp" id="f-qty" type="number" inputmode="numeric" placeholder="0">
+    <label class="f-lbl">최소 수량 <span style="color:var(--muted);font-weight:400;">(발주 기준 — 선택)</span></label>
+    <input class="f-inp" id="f-min" type="number" inputmode="numeric" placeholder="이 수량 미만이면 발주필요 표시">
+    <div class="f-hint">※ 비워두면 발주 알림 없음</div>
+    <div class="f-err" id="f-err"></div>
+    <button class="save-btn" id="f-save">저장</button>
+    <button class="cancel-btn" id="f-cancel">취소</button>
+  </div>
+</div>
+
+<!-- 하단 바 -->
 <div class="bot-bar">
-  <div></div>
+  <button class="hist-btn" id="hist-btn">📋 기록 <span id="log-cnt">0</span></button>
   <button class="fab" id="fab">＋</button>
 </div>
 
-<script>
-// 기본 설정 및 데이터
-var PIN = '1234';
-var pinEntry = '';
-var inv = [];
-var CATS = ['볶음밥', '소스류', '음료', '주방 냉동고', '카운터'];
-var CAT_CLR = {'볶음밥':'#c084fc', '소스류':'#fb923c', '음료':'#60a5fa', '주방 냉동고':'#34d399', '카운터':'#facc15'};
-var activeTab = '전체';
-var searchQ = '';
-var modalId = null;
+<!-- 기록 드로어 -->
+<div class="ov" id="ov"></div>
+<div class="drawer" id="drawer">
+  <div class="d-handle"></div>
+  <h2>변경 기록</h2>
+  <div id="log-list"></div>
+</div>
 
-// 초기 샘플 데이터 (사진 기반)
-var DEFAULT_INV = [
-  {id:1, name:'김치볶음밥', cat:'볶음밥', qty:6, min:10},
-  {id:2, name:'낙지볶음밥', cat:'볶음밥', qty:14, min:10},
-  {id:3, name:'닭근위튀김', cat:'주방 냉동고', qty:8, min:5},
-  {id:4, name:'찹쌀꽈배기', cat:'주방 냉동고', qty:4, min:6},
-  {id:5, name:'갈비교자', cat:'주방 냉동고', qty:13, min:5},
-  {id:6, name:'순살치킨', cat:'주방 냉동고', qty:26, min:10},
-  {id:7, name:'펩시 제로', cat:'음료', qty:15, min:10}
+<!-- 비번 변경 -->
+<div class="pw-bg" id="pw-bg">
+  <div class="pw-modal">
+    <div class="m-handle"></div>
+    <h3>🔑 비밀번호 변경</h3>
+    <div class="pw-hint">현재 비밀번호</div>
+    <input class="pw-f" id="pw-old" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+    <div class="pw-hint">새 비밀번호 (4자리)</div>
+    <input class="pw-f" id="pw-new" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+    <div class="pw-hint">새 비밀번호 확인</div>
+    <input class="pw-f" id="pw-cf" type="password" inputmode="numeric" maxlength="4" placeholder="••••">
+    <div class="f-err" id="pw-err"></div>
+    <button class="save-btn" onclick="savePw()">저장</button>
+    <button class="cancel-btn" onclick="closePw()">취소</button>
+  </div>
+</div>
+
+<script>
+// ── 유틸 ──
+function $id(id){ return document.getElementById(id); }
+function tStr(){
+  var d=new Date();
+  return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+}
+function filterArr(arr,fn){
+  var r=[];
+  for(var i=0;i<arr.length;i++) if(fn(arr[i])) r.push(arr[i]);
+  return r;
+}
+function strTrim(s){
+  while(s.length&&s[0]===' ') s=s.slice(1);
+  while(s.length&&s[s.length-1]===' ') s=s.slice(0,-1);
+  return s;
+}
+
+// ── 토스트 ──
+var toastTimer=null;
+function showToast(msg){
+  var t=$id('toast');
+  t.textContent=msg;
+  t.className='toast show';
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.className='toast'; },2000);
+}
+
+// ── localStorage 저장/불러오기 ──
+var STORE_KEY='inv_data_v1';
+var PIN_KEY='inv_pin_v1';
+
+function saveAll(){
+  try{
+    var data={inv:inv,nextId:nextId,pin:PIN};
+    localStorage.setItem(STORE_KEY,JSON.stringify(data));
+  }catch(e){}
+}
+
+function loadAll(){
+  try{
+    var raw=localStorage.getItem(STORE_KEY);
+    if(!raw) return false;
+    var data=JSON.parse(raw);
+    if(data.inv && data.inv.length){
+      inv=data.inv;
+      nextId=data.nextId||200;
+      PIN=data.pin||'1234';
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+// ── 비밀번호 ──
+var PIN='1234';
+var pinEntry='';
+
+function pinTap(n){
+  if(pinEntry.length>=4) return;
+  pinEntry+=n; dotRefresh(false);
+  if(pinEntry.length===4) setTimeout(pinCheck,120);
+}
+function pinDel(){ pinEntry=pinEntry.slice(0,-1); dotRefresh(false); $id('lk-err').textContent=''; }
+function dotRefresh(err){
+  for(var i=0;i<4;i++){
+    var d=$id('d'+i);
+    d.className='dot'+(err?' err':(i<pinEntry.length?' on':''));
+  }
+}
+function pinCheck(){
+  if(pinEntry===PIN){
+    $id('lock').className='hide';
+  } else {
+    dotRefresh(true);
+    $id('lk-err').textContent='비밀번호가 틀렸어요';
+    setTimeout(function(){ pinEntry=''; dotRefresh(false); $id('lk-err').textContent=''; },900);
+  }
+}
+function openPw(){
+  $id('pw-old').value=''; $id('pw-new').value=''; $id('pw-cf').value='';
+  $id('pw-err').textContent='';
+  $id('pw-bg').className='pw-bg open';
+}
+function closePw(){ $id('pw-bg').className='pw-bg'; }
+function savePw(){
+  var old=$id('pw-old').value,nw=$id('pw-new').value,cf=$id('pw-cf').value;
+  if(old!==PIN){ $id('pw-err').textContent='현재 비밀번호가 틀렸어요'; return; }
+  if(!/^\d{4}$/.test(nw)){ $id('pw-err').textContent='숫자 4자리로 입력해 주세요'; return; }
+  if(nw!==cf){ $id('pw-err').textContent='새 비밀번호가 일치하지 않아요'; return; }
+  PIN=nw; saveAll(); closePw(); showToast('🔑 비밀번호가 변경됐어요');
+}
+
+// ── 기본 데이터 ──
+var CATS=['볶음밥','소스류','음료','주방 냉동고','카운터'];
+var CAT_CLR={'볶음밥':'#c084fc','소스류':'#fb923c','음료':'#60a5fa','주방 냉동고':'#34d399','카운터':'#facc15'};
+var nextId=200;
+
+var DEFAULT_INV=[
+  {id:1, name:'김치',            cat:'볶음밥',     qty:6,  min:10},
+  {id:2, name:'낙지',            cat:'볶음밥',     qty:14, min:10},
+  {id:3, name:'닭갈비',          cat:'볶음밥',     qty:10, min:10},
+  {id:4, name:'대패제육',        cat:'볶음밥',     qty:14, min:10},
+  {id:5, name:'새우',            cat:'볶음밥',     qty:9,  min:10},
+  {id:6, name:'소불고기',        cat:'볶음밥',     qty:9,  min:10},
+  {id:7, name:'갈릭치즈소스',    cat:'소스류',     qty:3,  min:null},
+  {id:8, name:'고추마요소스',    cat:'소스류',     qty:3,  min:null},
+  {id:9, name:'닭강정소스',      cat:'소스류',     qty:2,  min:3},
+  {id:10,name:'돈까스소스',      cat:'소스류',     qty:3,  min:null},
+  {id:11,name:'라임타르타르소스',cat:'소스류',     qty:3,  min:null},
+  {id:12,name:'마늘간장소스',    cat:'소스류',     qty:2,  min:null},
+  {id:13,name:'마늘소스',        cat:'소스류',     qty:3,  min:null},
+  {id:14,name:'마요네즈',        cat:'소스류',     qty:2,  min:null},
+  {id:15,name:'매콤소스',        cat:'소스류',     qty:3,  min:null},
+  {id:16,name:'명란마요소스',    cat:'소스류',     qty:3,  min:null},
+  {id:17,name:'에그마요소스',    cat:'소스류',     qty:2,  min:null},
+  {id:18,name:'체더치즈소스',    cat:'소스류',     qty:3,  min:null},
+  {id:19,name:'크리미어니언소스',cat:'소스류',     qty:2,  min:null},
+  {id:20,name:'타코야키소스',    cat:'소스류',     qty:2,  min:null},
+  {id:21,name:'파닭소스',        cat:'소스류',     qty:3,  min:null},
+  {id:22,name:'밀키스',          cat:'음료',       qty:2,  min:null},
+  {id:23,name:'제로 칠성사이다', cat:'음료',       qty:3,  min:null},
+  {id:24,name:'제로 펩시라임',   cat:'음료',       qty:4,  min:null},
+  {id:25,name:'칠성사이다',      cat:'음료',       qty:2,  min:null},
+  {id:26,name:'코카콜라',        cat:'음료',       qty:2,  min:null},
+  {id:27,name:'포카리',          cat:'음료',       qty:2,  min:null},
+  {id:28,name:'갈비교자',        cat:'주방 냉동고', qty:13, min:null},
+  {id:29,name:'꽈배기',          cat:'주방 냉동고', qty:4,  min:null},
+  {id:30,name:'닭근위',          cat:'주방 냉동고', qty:8,  min:null},
+  {id:31,name:'닭껍질',          cat:'주방 냉동고', qty:7,  min:null},
+  {id:32,name:'떡꼬치',          cat:'주방 냉동고', qty:13, min:null},
+  {id:33,name:'맛감자',          cat:'주방 냉동고', qty:5,  min:null},
+  {id:34,name:'문어바',          cat:'주방 냉동고', qty:5,  min:null},
+  {id:35,name:'비엔나소세지',    cat:'주방 냉동고', qty:2,  min:null},
+  {id:36,name:'소떡',            cat:'주방 냉동고', qty:7,  min:null},
+  {id:37,name:'순살치킨',        cat:'주방 냉동고', qty:26, min:null},
+  {id:38,name:'알감자꼬치',      cat:'주방 냉동고', qty:4,  min:null},
+  {id:39,name:'오코노미야키',    cat:'주방 냉동고', qty:3,  min:null},
+  {id:40,name:'우유튀김',        cat:'주방 냉동고', qty:3,  min:null},
+  {id:41,name:'찹쌀떡',          cat:'주방 냉동고', qty:12, min:null},
+  {id:42,name:'츄러스',          cat:'주방 냉동고', qty:4,  min:null},
+  {id:43,name:'쿠시카츠',        cat:'주방 냉동고', qty:2,  min:null},
+  {id:44,name:'타코야키',        cat:'주방 냉동고', qty:1,  min:null},
+  {id:45,name:'파슈츄리핫도그',  cat:'주방 냉동고', qty:7,  min:null},
+  {id:46,name:'피카츄돈까스',    cat:'주방 냉동고', qty:14, min:null},
+  {id:47,name:'회오리감자',      cat:'주방 냉동고', qty:12, min:null},
+  {id:48,name:'후라이',          cat:'주방 냉동고', qty:3,  min:null},
+  {id:49,name:'후랑크소세지',    cat:'주방 냉동고', qty:7,  min:null},
+  {id:50,name:'떡볶이분말',      cat:'카운터',     qty:4,  min:null},
+  {id:51,name:'로제떡볶이분말',  cat:'카운터',     qty:2,  min:null},
+  {id:52,name:'매실원액',        cat:'카운터',     qty:7,  min:null},
+  {id:53,name:'뿌링클시즈닝',    cat:'카운터',     qty:7,  min:null},
+  {id:54,name:'식혜원액',        cat:'카운터',     qty:5,  min:null},
+  {id:55,name:'아이스티파우더',  cat:'카운터',     qty:4,  min:null},
+  {id:56,name:'짜장분말',        cat:'카운터',     qty:3,  min:null},
+  {id:57,name:'크림',            cat:'카운터',     qty:12, min:null}
 ];
 
-function $id(id){ return document.getElementById(id); }
+var inv=[];
+var logs=[], activeTab='전체', searchQ='', modalId=null, formMode='add', formTargetId=null;
 
-// 저장 및 불러오기
-function save(){ localStorage.setItem('inv_v1', JSON.stringify(inv)); }
-function load(){
-  var data = localStorage.getItem('inv_v1');
-  inv = data ? JSON.parse(data) : DEFAULT_INV;
+// ── 헬퍼 ──
+function getItem(id){
+  for(var i=0;i<inv.length;i++) if(inv[i].id===id) return inv[i];
+  return null;
+}
+function isZero(it){ return it.qty===0; }
+function isLow(it){ return it.min!==null && it.qty>0 && it.qty<it.min; }
+
+// ── 발주 배너 ──
+function renderBanner(){
+  var need=filterArr(inv,function(it){ return isLow(it)||isZero(it); });
+  var b=$id('alert-banner');
+  if(!need.length){ b.className='alert-banner'; return; }
+  var names=[];
+  for(var i=0;i<need.length;i++) names.push(need[i].name+(isZero(need[i])?'(소진)':''));
+  b.className='alert-banner show';
+  b.innerHTML='🚨 발주 필요 '+need.length+'건: '+names.join(', ');
 }
 
-// 잠금 기능
-function pinTap(n){
-  if(pinEntry.length < 4) {
-    pinEntry += n;
-    updateDots();
-    if(pinEntry.length === 4) setTimeout(checkPin, 150);
-  }
-}
-function pinDel(){ pinEntry = pinEntry.slice(0,-1); updateDots(); }
-function updateDots(){
-  for(var i=0; i<4; i++) $id('d'+i).className = i < pinEntry.length ? 'dot on' : 'dot';
-}
-function checkPin(){
-  if(pinEntry === PIN) $id('lock').classList.add('hide');
-  else {
-    $id('lk-err').textContent = '틀렸습니다';
-    pinEntry = ''; updateDots();
-  }
-}
-
-// 리스트 렌더링
-function render(){
-  var html = '';
-  var cats = activeTab === '전체' ? CATS : [activeTab];
-  var alertItems = [];
-
-  cats.forEach(function(cat){
-    var items = inv.filter(function(it){
-      return it.cat === cat && it.name.toLowerCase().includes(searchQ.toLowerCase());
-    });
-    if(items.length === 0) return;
-
-    html += `<div class="sec-label"><span><span style="color:${CAT_CLR[cat]}">●</span> ${cat}</span></div>`;
-    items.forEach(function(it){
-      var low = it.min && it.qty < it.min;
-      var zero = it.qty === 0;
-      if(low || zero) alertItems.push(it.name);
-      
-      html += `<div class="item ${zero?'zero':low?'low':''}" onclick="openModal(${it.id})">
-        <div class="item-name">${it.name}</div>
-        <div class="item-qty">${it.qty}</div>
-        ${zero?'<span class="badge zero">소진</span>':low?'<span class="badge low">발주</span>':''}
-      </div>`;
-    });
-  });
-
-  $id('list-content').innerHTML = html || '<div style="padding:40px; text-align:center; color:#777;">품목이 없습니다.</div>';
-  
-  var banner = $id('alert-banner');
-  if(alertItems.length > 0){
-    banner.textContent = '🚨 발주 필요: ' + alertItems.join(', ');
-    banner.classList.add('show');
-  } else {
-    banner.classList.remove('show');
-  }
-  $id('last-up').textContent = '최종 업데이트: ' + new Date().toLocaleTimeString();
-}
-
+// ── 탭 ──
 function renderTabs(){
-  var html = '<div class="tab '+(activeTab==='전체'?'on':'')+'" data-c="전체">전체</div>';
-  CATS.forEach(function(cat){
-    html += `<div class="tab ${activeTab===cat?'on':''}" data-c="${cat}">${cat}</div>`;
-  });
-  $id('tab-bar').innerHTML = html;
-  document.querySelectorAll('.tab').forEach(function(t){
-    t.onclick = function(){ activeTab = this.dataset.c; renderTabs(); render(); };
-  });
+  var bar=$id('tab-bar');
+  var tabs=['전체'].concat(CATS);
+  var html='';
+  for(var i=0;i<tabs.length;i++){
+    var t=tabs[i];
+    html+='<div class="tab'+(activeTab===t?' on':'')+'" data-c="'+t+'">'+t+'</div>';
+  }
+  bar.innerHTML=html;
+  var els=bar.getElementsByClassName('tab');
+  for(var j=0;j<els.length;j++){
+    (function(el){
+      el.onclick=function(){ activeTab=el.getAttribute('data-c'); renderTabs(); renderList(); };
+    })(els[j]);
+  }
 }
 
-// 모달 제어
+// ── 리스트 ──
+function renderList(){
+  var wrap=$id('list-content');
+  var cats=activeTab==='전체'?CATS:[activeTab];
+  var q=searchQ.toLowerCase();
+  var html='';
+  for(var ci=0;ci<cats.length;ci++){
+    var cat=cats[ci];
+    var items=filterArr(inv,function(it){ return it.cat===cat&&(!q||it.name.toLowerCase().indexOf(q)>=0); });
+    if(!items.length) continue;
+    var col=CAT_CLR[cat]||'#888';
+    html+='<div class="sec-label">'
+      +'<span><span style="color:'+col+'">● </span>'+cat+'</span>'
+      +'<button class="sec-add-btn" onclick="openForm(\'add\',\''+cat+'\')">+ 추가</button>'
+      +'</div><div class="item-list">';
+    for(var ii=0;ii<items.length;ii++){
+      var it=items[ii];
+      var zero=isZero(it),low=isLow(it);
+      var cls=zero?' zero':low?' low':'';
+      var qcls=zero?' zero':low?' low':'';
+      var badge=zero?'<span class="badge zero">소진</span>':low?'<span class="badge low">발주필요</span>':'';
+      html+='<div class="item'+cls+'" data-id="'+it.id+'" onclick="openModal('+it.id+')">'
+        +'<div class="dot-cat" style="background:'+col+'"></div>'
+        +'<div class="item-name">'+it.name+'</div>'
+        +'<div class="item-r">'+badge+'<div class="item-qty'+qcls+'">'+it.qty+'</div></div>'
+        +'</div>';
+    }
+    html+='</div>';
+  }
+  if(!html) html='<div class="empty">검색 결과 없음</div>';
+  wrap.innerHTML=html;
+  renderBanner();
+}
+
+// ── 수량 수정 모달 ──
 function openModal(id){
-  modalId = id;
-  var it = inv.find(function(i){ return i.id === id; });
-  $id('m-name').textContent = it.name;
-  $id('m-qty').textContent = it.qty;
-  $id('edit-bg').classList.add('open');
+  modalId=id;
+  var it=getItem(id);
+  $id('m-name').textContent=it.name;
+  $id('m-cat-tag').innerHTML='<span style="color:'+CAT_CLR[it.cat]+'">● '+it.cat+'</span>';
+  $id('m-input').value='';
+  refreshModal();
+  $id('edit-bg').className='mbg open';
 }
-$id('m-close').onclick = function(){ $id('edit-bg').classList.remove('open'); };
+function closeModal(){ $id('edit-bg').className='mbg'; modalId=null; }
+function refreshModal(){
+  if(!modalId) return;
+  var it=getItem(modalId);
+  $id('m-min-row').textContent=it.min!==null
+    ?'발주 기준: '+it.min+'개 미만 시 알림'
+    :'발주 기준 미설정 (✏️ 정보 수정에서 설정 가능)';
+  var qEl=$id('m-qty');
+  qEl.textContent=it.qty;
+  qEl.className='m-qty'+(isZero(it)?' zero':isLow(it)?' low':'');
+}
 
-$id('s-plus').onclick = function(){
-  var it = inv.find(function(i){ return i.id === modalId; });
-  it.qty++; save(); openModal(modalId); render();
+function updateQty(id,newQty,type,delta){
+  var it=getItem(id);
+  it.qty=newQty<0?0:newQty;
+  logs.unshift({name:it.name,delta:delta,type:type,time:tStr(),qty:it.qty});
+  $id('log-cnt').textContent=logs.length;
+  $id('last-up').textContent='최종 수정: '+tStr();
+  saveAll();
+  renderList();
+  setTimeout(function(){
+    var el=document.querySelector('[data-id="'+id+'"]');
+    if(!el) return;
+    el.className=el.className.replace(' flash','');
+    var dummy=el.offsetWidth; void dummy;
+    if(!isLow(it)&&!isZero(it)) el.className+=' flash';
+  },10);
+}
+
+$id('s-minus').onclick=function(){
+  if(!modalId) return;
+  var it=getItem(modalId);
+  updateQty(modalId,it.qty-1,'minus',-1); refreshModal();
 };
-$id('s-minus').onclick = function(){
-  var it = inv.find(function(i){ return i.id === modalId; });
-  if(it.qty > 0) it.qty--; save(); openModal(modalId); render();
+$id('s-plus').onclick=function(){
+  if(!modalId) return;
+  var it=getItem(modalId);
+  updateQty(modalId,it.qty+1,'plus',1); refreshModal();
 };
-$id('m-input').onchange = function(){
-  var it = inv.find(function(i){ return i.id === modalId; });
-  it.qty = parseInt(this.value) || 0;
-  this.value = ''; save(); openModal(modalId); render();
+$id('m-set').onclick=function(){
+  if(!modalId) return;
+  var v=parseInt($id('m-input').value,10);
+  if(isNaN(v)) return;
+  var it=getItem(modalId);
+  updateQty(modalId,v,'set',v-it.qty);
+  $id('m-input').value=''; refreshModal();
+};
+$id('m-input').onkeydown=function(e){ if(e.key==='Enter') $id('m-set').onclick(); };
+$id('m-close').onclick=closeModal;
+$id('edit-bg').onclick=function(e){ if(e.target===this) closeModal(); };
+$id('m-edit-btn').onclick=function(){
+  if(!modalId) return;
+  var id=modalId; closeModal(); openForm('edit',null,id);
+};
+$id('m-del-btn').onclick=function(){
+  if(!modalId) return;
+  var it=getItem(modalId);
+  if(!confirm('"'+it.name+'"을(를) 삭제할까요?')) return;
+  var newInv=[];
+  for(var i=0;i<inv.length;i++) if(inv[i].id!==modalId) newInv.push(inv[i]);
+  inv=newInv;
+  saveAll(); closeModal(); renderList();
 };
 
-$id('search').oninput = function(){ searchQ = this.value; render(); };
+// ── 폼 모달 ──
+function buildCatSel(){
+  var sel=$id('f-cat'); sel.innerHTML='';
+  for(var i=0;i<CATS.length;i++){
+    var op=document.createElement('option');
+    op.value=CATS[i]; op.textContent=CATS[i]; sel.appendChild(op);
+  }
+}
+function openForm(mode,cat,id){
+  formMode=mode; formTargetId=id||null;
+  buildCatSel();
+  $id('f-err').textContent='';
+  if(mode==='add'){
+    $id('f-title').textContent='➕ 제품 추가';
+    $id('f-cat').value=cat||CATS[0];
+    $id('f-name').value=''; $id('f-qty').value=''; $id('f-min').value='';
+  } else {
+    var it=getItem(id);
+    $id('f-title').textContent='✏️ 정보 수정';
+    $id('f-cat').value=it.cat; $id('f-name').value=it.name;
+    $id('f-qty').value=it.qty; $id('f-min').value=it.min!==null?it.min:'';
+  }
+  $id('form-bg').className='mbg open';
+}
+function closeForm(){ $id('form-bg').className='mbg'; }
 
-// 초기화
-load();
+$id('f-save').onclick=function(){
+  var cat=$id('f-cat').value;
+  var name=strTrim($id('f-name').value);
+  var qty=parseInt($id('f-qty').value,10);
+  var minStr=strTrim($id('f-min').value);
+  var min=minStr===''?null:parseInt(minStr,10);
+  var err=$id('f-err');
+  if(!name){ err.textContent='상품명을 입력해 주세요'; return; }
+  if(isNaN(qty)||qty<0){ err.textContent='현재 수량을 올바르게 입력해 주세요'; return; }
+  if(minStr!==''&&(isNaN(min)||min<0)){ err.textContent='최소 수량을 올바르게 입력해 주세요'; return; }
+  if(formMode==='add'){
+    inv.push({id:nextId++,name:name,cat:cat,qty:qty,min:min});
+    logs.unshift({name:name,delta:qty,type:'plus',time:tStr(),qty:qty});
+    $id('log-cnt').textContent=logs.length;
+    showToast('✅ '+name+' 추가됐어요');
+  } else {
+    var it=getItem(formTargetId);
+    it.name=name; it.cat=cat; it.qty=qty; it.min=min;
+    showToast('✅ 저장됐어요');
+  }
+  saveAll(); closeForm(); renderTabs(); renderList();
+};
+$id('f-cancel').onclick=closeForm;
+$id('form-bg').onclick=function(e){ if(e.target===this) closeForm(); };
+
+// ── FAB / 기록 ──
+$id('fab').onclick=function(){
+  openForm('add',activeTab==='전체'?CATS[0]:activeTab);
+};
+$id('hist-btn').onclick=function(){
+  var list=$id('log-list');
+  if(!logs.length){ list.innerHTML='<div class="empty">아직 변경 내역이 없어요</div>'; }
+  else {
+    var html='';
+    for(var i=0;i<logs.length;i++){
+      var l=logs[i];
+      var cls=l.type==='plus'?'pos':l.type==='minus'?'neg':'set';
+      var disp=l.type==='set'?'→ '+l.qty:(l.delta>0?'+':'')+l.delta+' ('+l.qty+')';
+      html+='<div class="log-row"><div class="log-nm">'+l.name+'</div>'
+        +'<div class="log-d '+cls+'">'+disp+'</div>'
+        +'<div class="log-t">'+l.time+'</div></div>';
+    }
+    list.innerHTML=html;
+  }
+  $id('drawer').className='drawer open';
+  $id('ov').className='ov open';
+};
+$id('ov').onclick=function(){
+  $id('drawer').className='drawer'; $id('ov').className='ov';
+};
+$id('search').oninput=function(){
+  searchQ=this.value;
+  if(searchQ) activeTab='전체';
+  renderTabs(); renderList();
+};
+
+// ── 시작 ──
+var loaded=loadAll();
+if(!loaded){ inv=DEFAULT_INV; }
 renderTabs();
-render();
+renderList();
 </script>
 </body>
 </html>
